@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -13,6 +14,7 @@ namespace SerializableFieldAssertions
     {
         /// <summary>
         /// Asserts that all serializable fields are not null with readable message.
+        /// Nullable fields are ignored.
         /// </summary>
         /// https://docs.unity3d.com/ja/2022.3/Manual/script-Serialization.html
         /// <param name="component"></param>
@@ -25,6 +27,7 @@ namespace SerializableFieldAssertions
             foreach (var field in fields)
             {
                 if (!IsMaybeSerializableField(field)) continue;
+                if (IsNullableField(field)) continue;
                 AssertNotNullEach(component, type, field);
             }
         }
@@ -43,6 +46,7 @@ namespace SerializableFieldAssertions
             if (field == null) throw new ArgumentException($"Field not found: \"{fieldName}\" in {type.Name}");
             if (!IsMaybeSerializableField(field))
                 throw new ArgumentException($"Field is not serializable: {fieldName} in {type.Name}");
+            if (IsNullableField(field)) throw new ArgumentException($"Field is nullable: {fieldName} in {type.Name}");
             AssertNotNullEach(component, type, field);
         }
 
@@ -97,7 +101,7 @@ namespace SerializableFieldAssertions
 
 
         /// <summary>
-        /// many Serializable fields:<br />
+        /// maybe serializable field:<br />
         /// - [SerializeField]<br />
         /// - public (not marked with [NonSerialized])
         /// </summary>
@@ -117,6 +121,16 @@ namespace SerializableFieldAssertions
 
             // not public and not marked with [SerializeField] -> not serializable
             return false;
+        }
+
+        private static bool IsNullableField(FieldInfo field)
+        {
+            // System.Runtime.CompilerServices.NullableAttribute is internal, so it cannot be accessed.
+            // Instead, AttributeType.FullName is used to check if it is Nullable.
+            const string nullableAttributeFullName = "System.Runtime.CompilerServices.NullableAttribute";
+            var nullableAttribute = field.CustomAttributes
+                .FirstOrDefault(a => a.AttributeType.FullName == nullableAttributeFullName);
+            return nullableAttribute != null;
         }
 
         private static string GetHierarchyPath(Transform transform)

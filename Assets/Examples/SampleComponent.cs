@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -32,6 +33,9 @@ namespace SerializableFieldAssertions.Examples
 
         // List<T> where T : ScriptableObject can contain null elements, but the list itself cannot be null.
         [SerializeField] private List<MyScriptableObject> myScriptableObjects = null!;
+
+        // Nullable fields are also serializable. `SerializableFieldAssert.AreNotNullAll` ignores nullable fields.
+        [SerializeField] private Transform? nullableTransform = null;
 
         private void Awake()
         {
