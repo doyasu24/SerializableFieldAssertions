@@ -55,6 +55,19 @@ private void Awake()
 
 The assertion is marked with `[Conditional("UNITY_ASSERTIONS")]`, the same as `UnityEngine.Assertions.Assert.IsNotNull`, so assertions are disabled in release build.
 
+### Nullable fields
+
+If you want to allow null values for a specific field, you can use the nullable type like `UnityEngine.Object?`.
+
+`SerializableFieldAssert.AreNotNullAll` does not validate fields that are nullable types.
+
+```cs
+// This field is validated for null by `SerializableFieldAssert.AreNotNullAll`.
+[SerializeField] private GameObject myGameObject = null!;
+// This field is not validated for null by `SerializableFieldAssert.AreNotNullAll`.
+[SerializeField] private GameObject? nullableGameObject = null;
+```
+
 For more details about serializable fields, refer to the official documentation:
 
 [Unity - Manual: Script serialization](https://docs.unity3d.com/2022.3/Documentation/Manual/script-Serialization.html)
